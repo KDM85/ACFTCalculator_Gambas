@@ -1,0 +1,17 @@
+# Gambas Project File 3.0
+Title=ACFT_Calculator
+Startup=FMain
+Version=1.0.0
+Component=gb.image
+Component=gb.gui
+Component=gb.form
+Component=gb.db
+Component=gb.db.form
+Description="ACFT 3.0 Score Calculator"
+Authors="Kevin D. Marshall"
+TabSize=2
+Language=en_US
+Packager=1
+Tags=Calculator,SQLite,Gambas 3.9
+Dependencies=SQLite 3
+GambasVersion=3.9
