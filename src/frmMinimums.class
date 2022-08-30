@@ -1,0 +1,142 @@
+' Gambas class file
+
+Public dbConnection As New Connection
+
+Public Sub btnGoCalc_Click()
+
+  FMain.Show
+  Me.Close()
+
+End
+
+Public Sub btnGetMin_Click()
+
+  Dim strAgeGroup As String
+  Dim strCardio As String
+
+  dbConnection.Name = Application.Path & "/ACFTcalc.db"
+  dbConnection.Type = "sqlite3"
+  Try dbConnection.Open()
+
+  strAgeGroup = GetAgeGroup(valAge.Value, cboGender.Text)
+
+  Select Case cboCardio.Text
+    Case "2-mi Run"
+      strCardio = "TMR"
+    Case "2.5-mi Walk"
+      strCardio = "TMW"
+    Case "1km Swim"
+      strCardio = "OKS"
+    Case "5km Row"
+      strCardio = "FKR"
+    Case "12km Bike"
+      strCardio = "TKB"
+  End Select
+
+  lblMDL.Text = "MDL: " & GetMinScore("MDL", valPoints.Value, strAgeGroup)
+  lblSPT.Text = "SPT: " & GetMinScore("SPT", valPoints.Value, strAgeGroup)
+  lblHRP.Text = "HRP: " & GetMinScore("HRP", valPoints.Value, strAgeGroup)
+  lblSDC.Text = "SDC: " & intSecondsToTime(GetMinScore("SDC", valPoints.Value, strAgeGroup))
+  lblPLK.Text = "PLK: " & intSecondsToTime(GetMinScore("PLK", valPoints.Value, strAgeGroup))
+  If strCardio = "TMR" Then
+    lblCardioOut.Text = "TMR: " & intSecondsToTime(GetMinScore("TMR", valPoints.Value, strAgeGroup))
+  Else
+    lblCardioOut.Text = strCardio & ": " & GetMinScore(strCardio, valPoints.Value, strAgeGroup)
+  Endif
+
+End
+
+Public Function GetAgeGroup(intAge As Integer, strGender As String) As String
+
+  Dim strAgeGroup As String
+
+  Select Case intAge
+    Case 17 To 21
+      strAgeGroup = "17-21"
+    Case 22 To 26
+      strAgeGroup = "22-26"
+    Case 27 To 31
+      strAgeGroup = "27-31"
+    Case 32 To 36
+      strAgeGroup = "32-36"
+    Case 37 To 41
+      strAgeGroup = "37-41"
+    Case 42 To 46
+      strAgeGroup = "42-46"
+    Case 47 To 51
+      strAgeGroup = "47-51"
+    Case 52 To 56
+      strAgeGroup = "52-56"
+    Case 57 To 61
+      strAgeGroup = "57-61"
+    Case Else
+      strAgeGroup = "62+"
+  End Select
+  Return strAgeGroup & strGender
+
+End
+
+Public Function GetMinScore(strEvent As String, varInput As Variant, strAgeGroup As String) As String
+
+  Dim strAE As String
+  Dim strSQL As String
+  Dim resOut As Result
+  Dim strOutput As String
+  Dim i As Integer
+
+  dbConnection.Name = Application.Path & "/ACFTcalc.db"
+  dbConnection.Type = "sqlite3"
+  Try dbConnection.Open()
+
+  strOutput = ""
+  i = 0
+  While strOutput = ""
+    varInput = Int(varInput) + i
+    Select Case strEvent
+      Case "TMW", "OKS", "FKR", "TKB"
+        Select Case strEvent
+          Case "TMW"
+            strAE = "Walk"
+          Case "OKS"
+            strAE = "Swim"
+          Case "FKR"
+            strAE = "Row"
+          Case "TKB"
+            strAE = "Bike"
+        End Select
+        strSQL = "SELECT [" & strAgeGroup & "] FROM tblAE"
+        strSQL = strSQL & " WHERE Event = '" & strAE & "'"
+      Case Else
+        strSQL = "SELECT [" & strAgeGroup & "] FROM tbl" & strEvent
+        strSQL = strSQL & " WHERE Points <= " & Str(varInput)
+    End Select
+    resOut = dbConnection.Exec(strSQL)
+    If resOut[0] = "" Then
+      strOutput = ""
+    Else
+      strOutput = resOut[0]
+    Endif
+    i = i + 1
+  Wend
+  dbConnection.Close()
+  Return strOutput
+
+End
+
+Public Function intSecondsToTime(varTime As Variant) As String
+
+  Dim intTime As Integer
+  Dim intMin As Integer
+  Dim intSec As Integer
+  Dim strOutput As String
+
+  intTime = CInt(varTime)
+
+  intMin = Int(intTime / 60)
+  intSec = intTime - (intMin * 60)
+
+  strOutput = Format(Str(intMin), "00") & ":" & Format(Str(intSec), "00")
+
+  Return strOutput
+
+End
