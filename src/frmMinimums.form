@@ -1,0 +1,75 @@
+# Gambas Form File 3.0
+
+{ Form Form
+  MoveScaled(0,0,45,64)
+  Text = ("Find Minimums")
+  { Separator1 Separator
+    MoveScaled(4,18,36,3)
+  }
+  { lblAge Label
+    MoveScaled(4,5,8,4)
+    Text = ("Age")
+  }
+  { valAge ValueBox
+    MoveScaled(12,5,6,4)
+    Text = ("22")
+  }
+  { lblGender Label
+    MoveScaled(22,5,8,4)
+    Text = ("Gender")
+  }
+  { cboGender ComboBox
+    MoveScaled(29,5,9,4)
+    List = [("M"), ("F")]
+    Text = ("M")
+  }
+  { lblCardio Label
+    MoveScaled(10,21,8,4)
+    Text = ("Cardio")
+  }
+  { cboCardio ComboBox
+    MoveScaled(18,21,18,4)
+    List = [("2-mi Run"), ("2.5-mi Walk"), ("1km Swim"), ("5km Row"), ("12km Bike")]
+    Text = ("2-mi Run")
+  }
+  { lblMDL Label
+    MoveScaled(10,27,26,3)
+    Alignment = Align.Center
+  }
+  { lblSPT Label
+    MoveScaled(10,32,26,3)
+    Alignment = Align.Center
+  }
+  { lblHRP Label
+    MoveScaled(10,37,26,3)
+    Alignment = Align.Center
+  }
+  { lblCardioOut Label
+    MoveScaled(10,52,26,3)
+    Alignment = Align.Center
+  }
+  { lblPLK Label
+    MoveScaled(10,47,26,3)
+    Alignment = Align.Center
+  }
+  { lblSDC Label
+    MoveScaled(10,42,26,3)
+    Alignment = Align.Center
+  }
+  { btnGetMin Button
+    MoveScaled(5,57,16,4)
+    Text = ("Get Minimums")
+  }
+  { btnGoCalc Button
+    MoveScaled(24,57,16,4)
+    Text = ("ACFT Calculator")
+  }
+  { lblPoints Label
+    MoveScaled(9,12,14,4)
+    Text = ("Minimum Points")
+  }
+  { valPoints ValueBox
+    MoveScaled(23,12,6,4)
+    Text = ("60")
+  }
+}
