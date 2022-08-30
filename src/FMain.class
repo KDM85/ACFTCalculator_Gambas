@@ -1,0 +1,205 @@
+' Gambas class file
+
+Public dbConnection As New Connection
+
+Public Sub btnCalculate_Click()
+
+  Dim strAgeGroup As String
+  Dim intOutput As Integer
+  Dim boolPass As Boolean
+
+  strAgeGroup = GetAgeGroup(valAge.Value, cboGender.Text)
+  boolPass = True
+
+  If valMDL.Value > 0 Then
+    lblMDLOut.Text = GetScore("MDL", valMDL.Value, strAgeGroup)
+    If CInt(lblMDLOut.Text) >= 60 Then
+      lblMDLOut.Foreground = Color.Green
+    Else
+      lblMDLOut.Foreground = Color.Red
+      boolPass = False
+    Endif
+  Else
+    lblMDLOut.Text = "0"
+  Endif
+  If valSPT.Value > 0 Then
+    lblSPTOut.Text = GetScore("SPT", valSPT.Value, strAgeGroup)
+    If CInt(lblSPTOut.Text) >= 60 Then
+      lblSPTOut.Foreground = Color.Green
+    Else
+      lblSPTOut.Foreground = Color.Red
+      boolPass = False
+    Endif
+  Else
+    lblSPTOut.Text = "0"
+  Endif
+  If valHRP.Value > 0 Then
+    lblHRPOut.Text = GetScore("HRP", valHRP.Value, strAgeGroup)
+    If CInt(lblHRPOut.Text) >= 60 Then
+      lblHRPOut.Foreground = Color.Green
+    Else
+      lblHRPOut.Foreground = Color.Red
+      boolPass = False
+    Endif
+  Else
+    lblHRPOut.Text = "0"
+  Endif
+  If valSDCm.Value > 0 Or valSDCs.Value > 0 Then
+    lblSDCOut.Text = GetScore("SDC", strTimeToSeconds(valSDCm.Value & ":" & Format(valSDCs.Value, "00")), strAgeGroup)
+    If CInt(lblSDCOut.Text) >= 60 Then
+      lblSDCOut.Foreground = Color.Green
+    Else
+      lblSDCOut.Foreground = Color.Red
+      boolPass = False
+    Endif
+  Else
+    lblSDCOut.Text = "0"
+  Endif
+  If valPLKm.Value > 0 Or valPLKs.Value > 0 Then
+    lblPLKOut.Text = GetScore("PLK", strTimeToSeconds(valPLKm.Value & ":" & valPLKs.Value), strAgeGroup)
+    If CInt(lblPLKOut.Text) >= 60 Then
+      lblPLKOut.Foreground = Color.Green
+    Else
+      lblPLKOut.Foreground = Color.Red
+      boolPass = False
+    Endif
+  Else
+    lblPLKOut.Text = "0"
+  Endif
+  Select Case cboCardio.Text
+    Case "2-mi Run"
+      lblCardioOut.Text = GetScore("TMR", strTimeToSeconds(valCardioM.Text & ":" & valCardioS.Text), strAgeGroup)
+    Case "2.5-mi Walk"
+      lblCardioOut.Text = GetScore("TMW", strTimeToSeconds(valCardioM.Text & ":" & valCardioS.Text), strAgeGroup)
+    Case "1km Swim"
+      lblCardioOut.Text = GetScore("OKS", strTimeToSeconds(valCardioM.Text & ":" & valCardioS.Text), strAgeGroup)
+    Case "5km Row"
+      lblCardioOut.Text = GetScore("FKR", strTimeToSeconds(valCardioM.Text & ":" & valCardioS.Text), strAgeGroup)
+    Case "12km Bike"
+      lblCardioOut.Text = GetScore("TKB", strTimeToSeconds(valCardioM.Text & ":" & valCardioS.Text), strAgeGroup)
+    Case Else
+      lblCardioOut.Text = "0"
+  End Select
+  If CInt(lblCardioOut.Text) >= 60 Then
+    lblCardioOut.Foreground = Color.Green
+  Else
+    lblCardioOut.Foreground = Color.Red
+    boolPass = False
+  Endif
+
+  intOutput = CInt(lblMDLOut.Text) + CInt(lblSPTOut.Text) + CInt(lblHRPOut.Text) + CInt(lblSDCOut.Text) + CInt(lblPLKOut.Text) + CInt(lblCardioOut.Text)
+  lblTotal.Text = "Total Score: " & Str(intOutput)
+  If boolPass Then
+    lblTotal.Foreground = Color.Green
+  Else
+    lblTotal.Foreground = Color.Red
+  Endif
+
+End
+
+Public Sub btnGoMin_Click()
+
+  frmMinimums.Show
+  Me.Close()
+
+End
+
+Public Function GetAgeGroup(intAge As Integer, strGender As String) As String
+
+  Dim strAgeGroup As String
+
+  Select Case intAge
+    Case 17 To 21
+      strAgeGroup = "17-21"
+    Case 22 To 26
+      strAgeGroup = "22-26"
+    Case 27 To 31
+      strAgeGroup = "27-31"
+    Case 32 To 36
+      strAgeGroup = "32-36"
+    Case 37 To 41
+      strAgeGroup = "37-41"
+    Case 42 To 46
+      strAgeGroup = "42-46"
+    Case 47 To 51
+      strAgeGroup = "47-51"
+    Case 52 To 56
+      strAgeGroup = "52-56"
+    Case 57 To 61
+      strAgeGroup = "57-61"
+    Case Else
+      strAgeGroup = "62+"
+  End Select
+  Return strAgeGroup & strGender
+
+End
+
+Public Function GetScore(strEvent As String, varInput As Variant, strAgeGroup As String) As Integer
+
+  Dim strAE As String
+  Dim strTestSQL As String
+  Dim strSQL As String
+  Dim resOut As Result
+  Dim intOutput As Integer
+
+  dbConnection.Name = Application.Path & "/ACFTcalc.db"
+  dbConnection.Type = "sqlite3"
+  Try dbConnection.Open()
+
+  Select Case strEvent
+    Case "TMW"
+      strAE = "Walk"
+    Case "OKS"
+      strAe = "Swim"
+    Case "FKR"
+      strAE = "Row"
+    Case "TKB"
+      strAE = "Bike"
+  End Select
+
+  Select Case strEvent
+    Case "TMW", "OKS", "FKR", "TKB"
+      strSQL = "SELECT [" & strAgeGroup & "] FROM tblAE WHERE Event = '" & strAE & "'"
+      resOut = dbConnection.Exec(strSQL)
+      intOutput = strTimeToSeconds(resOut[0])
+      If intOutput >= varInput Then
+        intOutput = 60
+      Else
+        intOutput = 0
+      Endif
+    Case Else
+      strTestSQL = "SELECT Min([" & strAgeGroup & "]) FROM tbl" & strEvent
+      resOut = dbConnection.Exec(strTestSQL)
+      intOutput = Int(resOut[0])
+      If varInput < intOutput Then
+        intOutput = 0
+        Goto ExitHandler
+      Endif
+      strSQL = "SELECT Points FROM tbl" & strEvent
+      strSQL = strSQL & " WHERE ([" & strAgeGroup & "] <= " & Str(varInput)
+      strSQL = strSQL & " AND NOT [" & strAgeGroup & "] = '')"
+      strSQL = strSQL & " ORDER BY ABS(" & Str(varInput) & " - [" & strAgeGroup & "])"
+      resOut = dbConnection.Exec(strSQL)
+      intOutput = Int(resOut[0])
+  End Select
+
+ExitHandler:
+  dbConnection.Close()
+  Return intOutput
+
+End
+
+Public Function strTimeToSeconds(strTime As String) As Integer
+
+  Dim strSplit As String[]
+  Dim intMin As Integer
+  Dim intSec As Integer
+  Dim intTime As Integer
+
+  strSplit = Split(strTime, ":")
+  intMin = CInt(strSplit[0])
+  intSec = CInt(strSplit[1])
+  intTime = intMin * 60 + intSec
+  Return intTime
+
+End
